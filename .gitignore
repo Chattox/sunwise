@@ -1,6 +1,7 @@
 uploads/
 log.txt
 last_reading_time.txt
+config.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

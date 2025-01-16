@@ -4,6 +4,7 @@ from datetime import datetime
 from Sunwise.Logger import Logger
 from Sunwise.Sensors import Sensors
 from utils.datetime_string import datetime_string
+from config import NICKNAME, READINGS_INTERVAL
 
 class Sunwise():
     """
@@ -25,7 +26,7 @@ class Sunwise():
 
         readings = self.sensors.get_readings()
         cache_payload = {
-            "nickname": "sunwise",
+            "nickname": NICKNAME,
             "timestamp": now,
             "readings": readings
         }
