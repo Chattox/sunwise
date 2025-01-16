@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from utils.datetime_string import datetime_string
 
 class Logger():
     """
@@ -16,10 +16,9 @@ class Logger():
             text (Str): info to log
         """
 
-        now = datetime.now(timezone.utc)
-        nowstr = now.strftime("%Y-%m-%dT%H:%M:%SZ")
+        now = datetime_string()
 
-        log_entry = "{0} {1:<10} {2}".format(nowstr, "[" + level + "]:", text)
+        log_entry = "{0} {1:<10} {2}".format(now, "[" + level + "]:", text)
 
         print(log_entry)
 
