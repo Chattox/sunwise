@@ -1,5 +1,6 @@
 from os import makedirs
 from json import dump
+from datetime import datetime
 from Sunwise.Logger import Logger
 from Sunwise.Sensors import Sensors
 from utils.datetime_string import datetime_string
@@ -18,6 +19,10 @@ class Sunwise():
         Get data from all sensors and cache to readings file for later upload
         """
         now = datetime_string()
+
+        with open("last_reading_time.txt", "w") as timefile:
+            timefile.write(now)
+
         readings = self.sensors.get_readings()
         cache_payload = {
             "nickname": "sunwise",
