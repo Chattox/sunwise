@@ -6,7 +6,7 @@ from requests import post
 from Sunwise.Logger import Logger
 from Sunwise.Sensors import Sensors
 from utils.datetime_string import datetime_string
-from config import NICKNAME, READINGS_INTERVAL, UPLOAD_COUNT, UPLOAD_DESTINATION
+from config import NICKNAME, READINGS_INTERVAL, UPLOAD_FREQUENCY, UPLOAD_DESTINATION
 
 class Sunwise():
     """
@@ -56,6 +56,8 @@ class Sunwise():
         Upload cached readings to HTTP endpoint
         """
         upload_dir = listdir("uploads")
+        upload_dir.sort()
+
         self.logger.log("info", f"Uploading {len(upload_dir)} readings...")
         self.logger.log("info", f"Destination: {UPLOAD_DESTINATION}")
 
@@ -84,12 +86,19 @@ class Sunwise():
         if now >= trigger_time:
             self.logger.log("info", "Sleep interrupted. Reason for waking: Time trigger")
             self.take_readings()
+
+            # Upload readings if there are enough cached to do so
+            num_cached_readings = len(listdir("uploads"))
+            self.logger.log("info", f"Cached readings: {num_cached_readings}. Upload every {UPLOAD_FREQUENCY} readings")
+            if num_cached_readings >= UPLOAD_FREQUENCY:
+                self.logger.log("info", f"Number of cached readings above specified upload frequency")
+                self.upload_readings()
+
             next_trigger_time = self.last_reading_time + self.reading_interval
             next_trigger_time = next_trigger_time.replace(second=0)
             self.logger.log("info", f"Setting next reading time for {next_trigger_time}")
             self.next_reading_time = next_trigger_time
-
-        self.logger.log("info", "Returning to sleep...")
+            self.logger.log("info", "Returning to sleep...")
 
     def main_loop(self):
         """
