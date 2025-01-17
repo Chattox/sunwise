@@ -6,7 +6,7 @@ from requests import post
 from Sunwise.Logger import Logger
 from Sunwise.Sensors import Sensors
 from utils.datetime_string import datetime_string
-from config import NICKNAME, READINGS_INTERVAL, UPLOAD_FREQUENCY, UPLOAD_DESTINATION
+from config import NICKNAME, READINGS_INCREMENT, UPLOAD_FREQUENCY, UPLOAD_DESTINATION, TIME_FORMAT
 
 class Sunwise():
     """
@@ -20,10 +20,12 @@ class Sunwise():
         if path.isfile("last_reading_time.txt"):
             with open("last_reading_time.txt", "r") as timefile:
                 last_time_str = timefile.readline()
-                last_time_dt = datetime.strptime(last_time_str, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+                last_time_dt = datetime.strptime(last_time_str, TIME_FORMAT).replace(tzinfo=timezone.utc)
                 self.last_reading_time = last_time_dt
-        self.reading_interval = timedelta(minutes=READINGS_INTERVAL)
-        self.next_reading_time = self.last_reading_time + self.reading_interval
+        else:
+            # If no last reading time file, set last_reading_time to force time trigger
+            self.last_reading_time = self.last_reading_time - timedelta(minutes=READINGS_INCREMENT + 1)
+        self.next_reading_time = self.last_reading_time
 
     def take_readings(self):
         """
@@ -74,7 +76,6 @@ class Sunwise():
                     except Exception as x:
                         self.logger.log("exception", f"An exception occurred when uploading: {x}")
                 
-
     def check_triggers(self):
         """
         Check triggers which would be cause for taking readings such as time
@@ -94,13 +95,18 @@ class Sunwise():
                 self.logger.log("info", f"Number of cached readings above specified upload frequency")
                 self.upload_readings()
 
-            next_trigger_time = self.last_reading_time + self.reading_interval
-            next_trigger_time = next_trigger_time.replace(second=0)
-            self.logger.log("info", f"Setting next reading time for {next_trigger_time}")
+            # Calculate next time to take readings, then return to watch_weather loop
+            minutes_to_next_reading = (READINGS_INCREMENT - (now.minute % READINGS_INCREMENT)) % READINGS_INCREMENT
+            # If already on a readings interval increment, move to the next
+            if minutes_to_next_reading == 0:
+                minutes_to_next_reading = 15
+            next_trigger_time = now + timedelta(minutes=minutes_to_next_reading)
+            next_trigger_time.replace(second=0, microsecond=0)
+            self.logger.log("info", f"Setting next reading time for {next_trigger_time.strftime(TIME_FORMAT)}")
             self.next_reading_time = next_trigger_time
             self.logger.log("info", "Returning to sleep...")
 
-    def main_loop(self):
+    def watch_weather(self):
         """
         Main loop of check triggers, act on them, sleep, repeat
         """
