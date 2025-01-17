@@ -31,7 +31,7 @@ class Sunwise():
         """
         Get data from all sensors and cache to readings file for later upload
         """
-        self.logger.log("info", f"Last reading time: {self.last_reading_time}")
+        self.logger.log("info", f"Last reading time: {self.last_reading_time.strftime(TIME_FORMAT)}")
         now_str = datetime_string()
         now_dt = datetime.now(timezone.utc)
 
