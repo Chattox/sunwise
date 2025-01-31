@@ -110,7 +110,10 @@ class Sunwise():
         """
         Main loop of check triggers, act on them, sleep, repeat
         """
-        self.logger.log("info", "Starting main loop")
+        self.logger.log("info", "Starting up...")
+        self.logger.log("info", "- Setting up rain sensor")
+        self.sensors.setup_rain_sensor()
+        self.logger.log("info", "Startup complete, watching the weather...")
 
         while True:
             self.check_triggers()
