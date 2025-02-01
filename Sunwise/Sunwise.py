@@ -86,7 +86,7 @@ class Sunwise():
         trigger_time = self.next_reading_time.replace(second=0)
         
         if now >= self.next_wind_time:
-            self.sensors.record_wind_speed()
+            self.sensors.record_wind_data()
             self.next_wind_time = now + timedelta(seconds=config.WIND_INTERVAL)
 
         if now >= trigger_time:

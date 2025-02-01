@@ -3,9 +3,10 @@ import bme280
 import warnings
 import math
 import os
-from gpiozero import PinFactoryFallback, Button
+import time
+from gpiozero import PinFactoryFallback, Button, MCP3008
 from utils.datetime_string import datetime_string
-from config import RAIN_SENSOR_MM, WIND_RADIUS, WIND_INTERVAL, WIND_ADJUSTMENT
+from config import RAIN_SENSOR_MM, WIND_RADIUS, WIND_INTERVAL, WIND_ADJUSTMENT, WIND_DIR_VOLTS
 
 
 
@@ -26,6 +27,8 @@ class Sensors():
         self.__rain_sensor = Button(6)
         self.__wind_speed_sensor = Button(5)
         self.__wind_count = 0
+        self.__wind_direction_sensor = MCP3008(channel=0)
+        self.__wind_dir_data = []
 
     def __get_bme280(self):
         """
@@ -86,13 +89,14 @@ class Sensors():
     
     def __spin(self):
         """
-        Record a single half rotation of the anemometer
+        Record a single half rotation of the anemometer as well as wind direction
         
         Note:
             It's a half rotation due to the anemometer generating two signals
             per whole rotation
         """
         self.__wind_count += 1
+        self.__record_wind_direction()
 
     def setup_anemometer(self):
         """
@@ -101,10 +105,10 @@ class Sensors():
         self.__wind_speed_sensor.when_activated = self.__spin
         self.__logger.log("info", "- Anemometer sensor setup complete")
 
-    def record_wind_speed(self):
+    def record_wind_data(self):
         """
         Calculates wind speed from wind_count and WIND_INTERVAL and
-        stores to file
+        average wind direction and stores to file
         """
         circumference_cm = (2 * math.pi) * WIND_RADIUS
         rotations = self.__wind_count / 2.0
@@ -115,11 +119,62 @@ class Sensors():
         # Wind speed, convert to m/s and adjust for anemometer factor
         speed = ((dist_cm / WIND_INTERVAL) / 100) * WIND_ADJUSTMENT
 
+        # Finally get average wind direction
+        average_wind_dir = 0.0
+        if len(self.__wind_dir_data) > 0:
+            average_wind_dir = self.__get_average_wind_dir()
+
         # Save to file
-        with open("wind.txt", "a") as windfile:
-            windfile.write(str(speed) + "\n")
+        with open("wind_speed.txt", "a") as speedfile:
+            speedfile.write(str(speed) + "\n")
+        
+        with open("wind_dir.txt", "a") as dirfile:
+            dirfile.write(str(average_wind_dir) + "\n")
 
         self.__wind_count = 0
+        self.__wind_dir_data = []
+
+    def __get_average_wind_dir(self):
+        """
+        Get average wind direction from list of readings. Maths shamelessly stolen from
+        the internet because I'm a dev, not a shape wizard
+
+        Returns:
+            int: angle of average wind direction
+        """
+        data = self.__wind_dir_data
+        sin_sum = 0.0
+        cos_sum = 0.0
+
+        for angle in data:
+            r = math.radians(angle)
+            sin_sum += math.sin(r)
+            cos_sum += math.cos(r)
+
+        f_len = float(len(data))
+        s = sin_sum / f_len
+        c = cos_sum / f_len
+        arc = math.degrees(math.atan(s / c))
+        average = 0.0
+
+        if s > 0 and c > 0:
+            average = arc
+        elif c < 0:
+            average = arc + 180
+        elif s < 0 and c > 0:
+            average = arc + 360
+
+        return 0.0 if average == 360 else average
+
+    def __record_wind_direction(self):
+        """
+        Record current wind direction based on voltage reading from vane to memory
+        """
+        wind_dir = round(self.__wind_direction_sensor.value*3.3,1)
+        # TODO: On bad readings, find closest angle and save that instead
+        if wind_dir in WIND_DIR_VOLTS:
+            self.__wind_dir_data.append(WIND_DIR_VOLTS[wind_dir])
+            
         
     def get_readings(self):
         """
