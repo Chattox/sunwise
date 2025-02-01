@@ -141,7 +141,7 @@ class Sensors():
         self.__wind_count = 0
         self.__wind_dir_data = []
 
-    def __get_average_wind_dir(self):
+    def __get_average_wind_dir(self, data=[]):
         """
         Get average wind direction from list of readings. Maths shamelessly stolen from
         the internet because I'm a dev, not a shape wizard
@@ -149,7 +149,9 @@ class Sensors():
         Returns:
             int: angle of average wind direction
         """
-        data = self.__wind_dir_data
+        if len(data) == 0:
+            data = self.__wind_dir_data
+
         sin_sum = 0.0
         cos_sum = 0.0
 
@@ -187,8 +189,8 @@ class Sensors():
         Calculate average wind speed and gust speed from currently saved readings 
 
         Returns:
-            int: average wind speed in m/s
-            int: gust speed in m/s
+            float: average wind speed in m/s
+            float: gust speed in m/s
         """
         wind_speeds = []
         with open("wind_speed.txt", "r") as speedfile:
@@ -203,6 +205,30 @@ class Sensors():
         os.remove("wind_speed.txt")
 
         return gust, avg_speed
+
+    def __get_wind_dir_data(self):
+        """
+        Calculate average wind direction from currently saved readings
+
+        Returns:
+            float: average angle of wind direction
+        """
+        wind_dirs = []
+        with open("wind_dir.txt", "r") as dirfile:
+            dirs = dirfile.readlines()
+            for dir in dirs:
+                f_dir = float(dir.rstrip())
+                wind_dirs.append(f_dir)
+        
+        average_dir = self.__get_average_wind_dir(wind_dirs)
+        
+        # Return closest cardinal/ordinal angle
+        compass_angles = [0, 45, 90, 135, 180, 225, 270, 315, 360]
+        closest_angle = min(compass_angles, key=lambda x: abs(x - average_dir))
+
+        os.remove("wind_dir.txt")
+
+        return 0 if closest_angle == 360 else closest_angle
             
         
     def get_readings(self):
@@ -217,6 +243,7 @@ class Sensors():
         bme280_readings = self.__get_bme280()
         rainfall = self.__get_rainfall()
         gust, avg_speed = self.__get_wind_speed_data()
+        wind_dir = self.__get_wind_dir_data()
         readings_dict = {
                 "temperature": round(bme280_readings["temperature"], 2),
                 "humidity": round(bme280_readings["humidity"], 2),
@@ -224,9 +251,9 @@ class Sensors():
                 "luminance": 0,
                 "wind_speed": avg_speed,
                 "gust_speed": gust,
+                "wind_direction": wind_dir,
                 "rain": rainfall,
                 "rain_per_second": 0,
-                "wind_direction": 0
         }
 
         return readings_dict
