@@ -1,7 +1,7 @@
 import smbus2
 import bme280
 import warnings
-from os import remove
+from os import remove, path
 from gpiozero import PinFactoryFallback
 from gpiozero import Button
 from utils.datetime_string import datetime_string
@@ -60,22 +60,25 @@ class Sensors():
 
     def __get_rainfall(self):
         """
-        Multiplies the number of rain sensor readings in rainfall.txt by RAIN_SENSOR_MM
+        Multiplies the number of rain sensor readings in rain.txt by RAIN_SENSOR_MM
         to get total rainfall in mm
 
         Returns:
             int: amount of rainfall in mm
         """
+        if not path.isfile("rain.txt"):
+            return 0
+
         rain_mm = 0
 
-        with open("rainfall.txt", "r") as rainfile:
+        with open("rain.txt", "r") as rainfile:
             rain_data = rainfile.readlines()
         
         for entry in rain_data:
             if entry:
                 rain_mm += RAIN_SENSOR_MM
 
-        remove("rainfall.txt")
+        remove("rain.txt")
 
         return rain_mm
     

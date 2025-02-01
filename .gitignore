@@ -2,7 +2,7 @@ uploads/
 log.txt
 last_reading_time.txt
 config.py
-rainfall.txt
+rain.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
