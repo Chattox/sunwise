@@ -245,9 +245,9 @@ class Sensors():
         wind_dir = self.__get_wind_dir_data()
         lux = self.__lux_sensor.get_lux()
         readings_dict = {
-                "temperature": round(bme280_readings["temperature"], 2),
-                "humidity": round(bme280_readings["humidity"], 2),
-                "pressure": round(bme280_readings["pressure"], 2),
+                "temperature": bme280_readings["temperature"],
+                "humidity": bme280_readings["humidity"],
+                "pressure": bme280_readings["pressure"],
                 "luminance": lux,
                 "wind_speed": avg_speed,
                 "gust_speed": gust,
