@@ -123,6 +123,13 @@ class Sensors():
         average_wind_dir = 0.0
         if len(self.__wind_dir_data) > 0:
             average_wind_dir = self.__get_average_wind_dir()
+        elif os.path.isfile("wind_dir.txt"):
+            # If there's not been any wind, duplicate the most recent dir since
+            # the vane won't have moved
+            with open("wind_dir.txt", "r") as read_dirfile:
+                last_dir = read_dirfile.readlines()[-1].rstrip()
+        # If there's no wind or previous dir, just leave it as 0.0. Should probably
+        # look into always storing most recent dir for this
 
         # Save to file
         with open("wind_speed.txt", "a") as speedfile:
