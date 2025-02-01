@@ -1,3 +1,4 @@
+# Software constants
 # Name of the station to identify it in the readings database
 NICKNAME=""
 # Increment on the hour to take readings. e.g. 15 means readings at 0, 15, 30, and 45, minutes
@@ -9,5 +10,13 @@ UPLOAD_FREQUENCY=4
 UPLOAD_DESTINATION=""
 # Format for string representations of timestamps
 TIME_FORMAT=""
+# How often to calculate and record wind speed in seconds
+WIND_INTERVAL=5
+# Adjustment for anemometer factor
+WIND_ADJUSTMENT=1.1789
+
+# Hardware constants
 # Amount of rain required for the rain sensor to trip in mm
 RAIN_SENSOR_MM = 0.2794
+# Radius of anemometer in cm
+WIND_RADIUS = 9.0

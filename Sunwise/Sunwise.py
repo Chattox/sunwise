@@ -6,7 +6,7 @@ from requests import post
 from Sunwise.Logger import Logger
 from Sunwise.Sensors import Sensors
 from utils.datetime_string import datetime_string
-from config import NICKNAME, READINGS_INCREMENT, UPLOAD_FREQUENCY, UPLOAD_DESTINATION, TIME_FORMAT
+from config import NICKNAME, READINGS_INCREMENT, UPLOAD_FREQUENCY, UPLOAD_DESTINATION, TIME_FORMAT, WIND_INTERVAL
 
 class Sunwise():
     """
@@ -26,6 +26,7 @@ class Sunwise():
             # If no last reading time file, set last_reading_time to force time trigger
             self.last_reading_time = self.last_reading_time - timedelta(minutes=READINGS_INCREMENT + 1)
         self.next_reading_time = self.last_reading_time
+        self.next_wind_time = self.last_reading_time
 
     def take_readings(self):
         """
@@ -84,6 +85,10 @@ class Sunwise():
         now = datetime.now(timezone.utc)
         trigger_time = self.next_reading_time.replace(second=0)
         
+        if now >= self.next_wind_time:
+            self.sensors.record_wind_speed()
+            self.next_wind_time = now + timedelta(seconds=WIND_INTERVAL)
+
         if now >= trigger_time:
             self.logger.log("info", "Sleep interrupted. Reason for waking: Time trigger")
             self.take_readings()
@@ -113,6 +118,8 @@ class Sunwise():
         self.logger.log("info", "Starting up...")
         self.logger.log("info", "- Setting up rain sensor")
         self.sensors.setup_rain_sensor()
+        self.logger.log("info", "- Setting up anemometer")
+        self.sensors.setup_anemometer()
         self.logger.log("info", "Startup complete, watching the weather...")
 
         while True:

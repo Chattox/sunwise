@@ -3,6 +3,7 @@ log.txt
 last_reading_time.txt
 config.py
 rain.txt
+wind.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

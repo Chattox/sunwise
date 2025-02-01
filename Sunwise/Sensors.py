@@ -1,11 +1,12 @@
 import smbus2
 import bme280
 import warnings
+import math
 from os import remove, path
 from gpiozero import PinFactoryFallback
 from gpiozero import Button
 from utils.datetime_string import datetime_string
-from config import RAIN_SENSOR_MM
+from config import RAIN_SENSOR_MM, WIND_RADIUS, WIND_INTERVAL, WIND_ADJUSTMENT
 
 
 
@@ -24,6 +25,8 @@ class Sensors():
         self.__bus = smbus2.SMBus(self.__port)
         self.__calibration_params = bme280.load_calibration_params(self.__bus, self.__address)
         self.__rain_sensor = Button(6)
+        self.__wind_speed_sensor = Button(5)
+        self.__wind_count = 0
 
     def __get_bme280(self):
         """
@@ -48,7 +51,7 @@ class Sensors():
         self.__logger.log("info", "Recording detected rainfall")
         now_str = datetime_string()
 
-        with open("rainfall.txt", "a") as rainfile:
+        with open("rain.txt", "a") as rainfile:
             rainfile.write(now_str + "\n")
 
     def setup_rain_sensor(self):
@@ -82,6 +85,43 @@ class Sensors():
 
         return rain_mm
     
+    def __spin(self):
+        """
+        Record a single half rotation of the anemometer
+        
+        Note:
+            It's a half rotation due to the anemometer generating two signals
+            per whole rotation
+        """
+        self.__wind_count += 1
+
+    def setup_anemometer(self):
+        """
+        Sets up the listener for the anemometer
+        """
+        self.__wind_speed_sensor.when_activated = self.__spin
+        self.__logger.log("info", "- Anemometer sensor setup complete")
+
+    def record_wind_speed(self):
+        """
+        Calculates wind speed from wind_count and WIND_INTERVAL and
+        stores to file
+        """
+        circumference_cm = (2 * math.pi) * WIND_RADIUS
+        rotations = self.__wind_count / 2.0
+
+        # Distance travelled by an anemometer cup in cm
+        dist_cm = circumference_cm * rotations
+
+        # Wind speed, convert to m/s and adjust for anemometer factor
+        speed = ((dist_cm / WIND_INTERVAL) / 100) * WIND_ADJUSTMENT
+
+        # Save to file
+        with open("wind.txt", "a") as windfile:
+            windfile.write(str(speed) + "\n")
+
+        self.__wind_count = 0
+        
     def get_readings(self):
         """
         Take readings from all sensors and return a dict containing them
