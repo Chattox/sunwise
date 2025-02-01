@@ -3,7 +3,7 @@ import bme280
 import warnings
 import math
 import os
-import time
+import statistics
 from gpiozero import PinFactoryFallback, Button, MCP3008
 from utils.datetime_string import datetime_string
 from config import RAIN_SENSOR_MM, WIND_RADIUS, WIND_INTERVAL, WIND_ADJUSTMENT, WIND_DIR_VOLTS
@@ -181,6 +181,28 @@ class Sensors():
         # TODO: On bad readings, find closest angle and save that instead
         if wind_dir in WIND_DIR_VOLTS:
             self.__wind_dir_data.append(WIND_DIR_VOLTS[wind_dir])
+
+    def __get_wind_speed_data(self):
+        """
+        Calculate average wind speed and gust speed from currently saved readings 
+
+        Returns:
+            int: average wind speed in m/s
+            int: gust speed in m/s
+        """
+        wind_speeds = []
+        with open("wind_speed.txt", "r") as speedfile:
+            speeds = speedfile.readlines()
+            for speed in speeds:
+                f_speed = float(speed.rstrip())
+                wind_speeds.append(f_speed)
+
+        gust = max(wind_speeds)
+        avg_speed = statistics.mean(wind_speeds)
+
+        os.remove("wind_speed.txt")
+
+        return gust, avg_speed
             
         
     def get_readings(self):
@@ -194,12 +216,14 @@ class Sensors():
 
         bme280_readings = self.__get_bme280()
         rainfall = self.__get_rainfall()
+        gust, avg_speed = self.__get_wind_speed_data()
         readings_dict = {
                 "temperature": round(bme280_readings["temperature"], 2),
                 "humidity": round(bme280_readings["humidity"], 2),
                 "pressure": round(bme280_readings["pressure"], 2),
                 "luminance": 0,
-                "wind_speed": 0,
+                "wind_speed": avg_speed,
+                "gust_speed": gust,
                 "rain": rainfall,
                 "rain_per_second": 0,
                 "wind_direction": 0
