@@ -4,8 +4,8 @@ import time
 import requests
 import config
 from datetime import datetime, timezone, timedelta
-from Sunwise.Logger import Logger
-from Sunwise.Sensors import Sensors
+from sunwise.Logger import Logger
+from sunwise.Sensors import Sensors
 from utils.datetime_string import datetime_string
 
 class Sunwise():
