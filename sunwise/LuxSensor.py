@@ -27,4 +27,6 @@ class LuxSensor():
             # Combine the 2 bytes into a single 16-bit value
             data = (buf[0] << 8) | buf[1]
 
-            print(data)
+            lux = data / 1.2
+
+            return lux
