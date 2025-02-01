@@ -5,10 +5,9 @@ import math
 import os
 import statistics
 from gpiozero import PinFactoryFallback, Button, MCP3008
+from sunwise.LuxSensor import LuxSensor
 from utils.datetime_string import datetime_string
 from config import RAIN_SENSOR_MM, WIND_RADIUS, WIND_INTERVAL, WIND_ADJUSTMENT, WIND_DIR_VOLTS
-
-
 
 class Sensors():
     """
@@ -21,9 +20,10 @@ class Sensors():
         warnings.simplefilter("ignore", PinFactoryFallback)
         self.__logger = logger
         self.__port = 1
-        self.__address = 0x77
+        self.__bme280_address = 0x77
+        self.__lux_sensor = LuxSensor()
         self.__bus = smbus2.SMBus(self.__port)
-        self.__calibration_params = bme280.load_calibration_params(self.__bus, self.__address)
+        self.__calibration_params = bme280.load_calibration_params(self.__bus, self.__bme280_address)
         self.__rain_sensor = Button(6)
         self.__wind_speed_sensor = Button(5)
         self.__wind_count = 0
@@ -38,7 +38,7 @@ class Sensors():
             dict: Temperature, humidity, and pressure readings rounded
             to 2 decimal places
         """
-        data = bme280.sample(self.__bus, self.__address, self.__calibration_params)
+        data = bme280.sample(self.__bus, self.__bme280_address, self.__calibration_params)
         readings_dict = {
             "temperature": data.temperature,
             "humidity": data.humidity,
@@ -229,8 +229,7 @@ class Sensors():
         os.remove("wind_dir.txt")
 
         return 0 if closest_angle == 360 else closest_angle
-            
-        
+    
     def get_readings(self):
         """
         Take readings from all sensors and return a dict containing them
@@ -244,11 +243,12 @@ class Sensors():
         rainfall = self.__get_rainfall()
         gust, avg_speed = self.__get_wind_speed_data()
         wind_dir = self.__get_wind_dir_data()
+        lux = self.__lux_sensor.get_lux()
         readings_dict = {
                 "temperature": round(bme280_readings["temperature"], 2),
                 "humidity": round(bme280_readings["humidity"], 2),
                 "pressure": round(bme280_readings["pressure"], 2),
-                "luminance": 0,
+                "luminance": lux,
                 "wind_speed": avg_speed,
                 "gust_speed": gust,
                 "wind_direction": wind_dir,
