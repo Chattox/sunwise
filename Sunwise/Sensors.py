@@ -2,9 +2,8 @@ import smbus2
 import bme280
 import warnings
 import math
-from os import remove, path
-from gpiozero import PinFactoryFallback
-from gpiozero import Button
+import os
+from gpiozero import PinFactoryFallback, Button
 from utils.datetime_string import datetime_string
 from config import RAIN_SENSOR_MM, WIND_RADIUS, WIND_INTERVAL, WIND_ADJUSTMENT
 
@@ -69,7 +68,7 @@ class Sensors():
         Returns:
             int: amount of rainfall in mm
         """
-        if not path.isfile("rain.txt"):
+        if not os.path.isfile("rain.txt"):
             return 0
 
         rain_mm = 0
@@ -81,7 +80,7 @@ class Sensors():
             if entry:
                 rain_mm += RAIN_SENSOR_MM
 
-        remove("rain.txt")
+        os.remove("rain.txt")
 
         return rain_mm
     
