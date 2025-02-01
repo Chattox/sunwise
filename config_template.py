@@ -9,3 +9,5 @@ UPLOAD_FREQUENCY=4
 UPLOAD_DESTINATION=""
 # Format for string representations of timestamps
 TIME_FORMAT=""
+# Amount of rain required for the rain sensor to trip in mm
+RAIN_SENSOR_MM = 0.2794
