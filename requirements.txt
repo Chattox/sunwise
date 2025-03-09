@@ -1,0 +1,15 @@
+certifi==2024.12.14
+charset-normalizer==3.4.1
+colorzero==2.0
+gpiozero==2.0.1
+idna==3.10
+importlib-metadata==4.13.0
+importlib-resources==5.13.0
+pytz==2024.2
+requests==2.32.3
+RPi.bme280==0.2.4
+RPi.GPIO==0.7.1
+smbus2==0.5.0
+spidev==3.6
+urllib3==2.3.0
+zipp==3.21.0
