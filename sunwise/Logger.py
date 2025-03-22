@@ -1,4 +1,4 @@
-from utils.datetime_string import datetime_string
+from utils import datetime_string
 
 class Logger():
     """

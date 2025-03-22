@@ -4,9 +4,10 @@ import time
 import requests
 import config
 from datetime import datetime, timezone, timedelta
+from traceback import format_exc
 from sunwise.Logger import Logger
 from sunwise.Sensors import Sensors
-from utils.datetime_string import datetime_string
+from utils import datetime_string
 
 class Sunwise():
     """
@@ -122,7 +123,10 @@ class Sunwise():
         self.sensors.setup_anemometer()
         self.logger.log("info", "Startup complete, watching the weather...")
 
-        while True:
-            self.check_triggers()
-            time.sleep(0.001)
+        try:
+            while True:
+                self.check_triggers()
+                time.sleep(0.001)
+        except Exception as e:
+            self.logger.log("exception", format_exc())
             
