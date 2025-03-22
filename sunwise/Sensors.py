@@ -6,7 +6,7 @@ import os
 import statistics
 from gpiozero import PinFactoryFallback, Button, MCP3008
 from sunwise.LuxSensor import LuxSensor
-from utils.datetime_string import datetime_string
+from utils import datetime_string
 from config import RAIN_SENSOR_MM, WIND_RADIUS, WIND_INTERVAL, WIND_ADJUSTMENT, WIND_DIR_VOLTS
 
 class Sensors():
