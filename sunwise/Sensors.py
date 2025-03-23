@@ -166,8 +166,8 @@ class Sensors():
         if s == 0.0 or c == 0.0:
             self.__logger.log("debug", f"f_len: {f_len}, sin_sum: {sin_sum}, cos_sum: {cos_sum}\ns: {s}, c: {c}")
             # dump wind dir data to file for debugging
-            with open(f"debug_wind_dir-{datetime_string(filename=True)}.txt", "a") as debugfile:
-                debugfile.write([str(i)+"\n" for i in data])
+            with open(f"debug_wind_dir-{datetime_string(filename=True)}.txt", "w") as debugfile:
+                debugfile.write("\n".join(str(i) for i in data))
         arc = math.degrees(math.atan(s / c))
         average = 0.0
 
