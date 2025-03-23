@@ -163,6 +163,8 @@ class Sensors():
         f_len = float(len(data))
         s = sin_sum / f_len
         c = cos_sum / f_len
+        if s == 0.0 or c == 0.0:
+            self.__logger.log("debug", f"f_len: {f_len}, sin_sum: {sin_sum}, cos_sum: {cos_sum}\ns: {s}, c: {c}")
         arc = math.degrees(math.atan(s / c))
         average = 0.0
 
