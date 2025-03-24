@@ -9,6 +9,7 @@ from sunwise.LuxSensor import LuxSensor
 from utils import datetime_string
 from config import RAIN_SENSOR_MM, WIND_RADIUS, WIND_INTERVAL, WIND_ADJUSTMENT, WIND_DIR_VOLTS
 
+
 class Sensors():
     """
     Handles config and reading of attached sensors
@@ -16,6 +17,7 @@ class Sensors():
     Args:
         logger (Logger): Logger instance
     """
+
     def __init__(self, logger):
         warnings.simplefilter("ignore", PinFactoryFallback)
         self.__logger = logger
@@ -23,7 +25,8 @@ class Sensors():
         self.__bme280_address = 0x77
         self.__lux_sensor = LuxSensor()
         self.__bus = smbus2.SMBus(self.__port)
-        self.__calibration_params = bme280.load_calibration_params(self.__bus, self.__bme280_address)
+        self.__calibration_params = bme280.load_calibration_params(
+            self.__bus, self.__bme280_address)
         self.__rain_sensor = Button(6)
         self.__wind_speed_sensor = Button(5)
         self.__wind_count = 0
@@ -38,7 +41,8 @@ class Sensors():
             dict: Temperature, humidity, and pressure readings rounded
             to 2 decimal places
         """
-        data = bme280.sample(self.__bus, self.__bme280_address, self.__calibration_params)
+        data = bme280.sample(
+            self.__bus, self.__bme280_address, self.__calibration_params)
         readings_dict = {
             "temperature": data.temperature,
             "humidity": data.humidity,
@@ -78,7 +82,7 @@ class Sensors():
 
         with open("rain.txt", "r") as rainfile:
             rain_data = rainfile.readlines()
-        
+
         for entry in rain_data:
             if entry:
                 rain_mm += RAIN_SENSOR_MM
@@ -86,11 +90,11 @@ class Sensors():
         os.remove("rain.txt")
 
         return rain_mm
-    
+
     def __spin(self):
         """
         Record a single half rotation of the anemometer as well as wind direction
-        
+
         Note:
             It's a half rotation due to the anemometer generating two signals
             per whole rotation
@@ -134,7 +138,7 @@ class Sensors():
         # Save to file
         with open("wind_speed.txt", "a") as speedfile:
             speedfile.write(str(speed) + "\n")
-        
+
         with open("wind_dir.txt", "a") as dirfile:
             dirfile.write(str(average_wind_dir) + "\n")
 
@@ -164,7 +168,8 @@ class Sensors():
         s = sin_sum / f_len
         c = cos_sum / f_len
         if s == 0.0 or c == 0.0:
-            self.__logger.log("debug", f"f_len: {f_len}, sin_sum: {sin_sum}, cos_sum: {cos_sum}\ns: {s}, c: {c}")
+            self.__logger.log(
+                "debug", f"f_len: {f_len}, sin_sum: {sin_sum}, cos_sum: {cos_sum}\ns: {s}, c: {c}")
             # dump wind dir data to file for debugging
             with open(f"debug_wind_dir-{datetime_string(filename=True)}.txt", "w") as debugfile:
                 debugfile.write("\n".join(str(i) for i in data))
@@ -190,7 +195,7 @@ class Sensors():
         """
         Record current wind direction based on voltage reading from vane to memory
         """
-        wind_dir = round(self.__wind_direction_sensor.value*3.3,1)
+        wind_dir = round(self.__wind_direction_sensor.value*3.3, 1)
         # TODO: On bad readings, find closest angle and save that instead
         if wind_dir in WIND_DIR_VOLTS:
             self.__wind_dir_data.append(WIND_DIR_VOLTS[wind_dir])
@@ -230,9 +235,9 @@ class Sensors():
             for dir in dirs:
                 f_dir = float(dir.rstrip())
                 wind_dirs.append(f_dir)
-        
+
         average_dir = self.__get_average_wind_dir(wind_dirs)
-        
+
         # Return closest cardinal/ordinal angle
         compass_angles = [0, 45, 90, 135, 180, 225, 270, 315, 360]
         closest_angle = min(compass_angles, key=lambda x: abs(x - average_dir))
@@ -240,7 +245,7 @@ class Sensors():
         os.remove("wind_dir.txt")
 
         return 0 if closest_angle == 360 else closest_angle
-    
+
     def get_readings(self):
         """
         Take readings from all sensors and return a dict containing them
@@ -256,15 +261,14 @@ class Sensors():
         wind_dir = self.__get_wind_dir_data()
         lux = self.__lux_sensor.get_lux()
         readings_dict = {
-                "temperature": bme280_readings["temperature"],
-                "humidity": bme280_readings["humidity"],
-                "pressure": bme280_readings["pressure"],
-                "luminance": lux,
-                "wind_speed": avg_speed,
-                "gust_speed": gust,
-                "wind_direction": wind_dir,
-                "rain": rainfall,
-                "rain_per_second": 0,
+            "temperature": bme280_readings["temperature"],
+            "humidity": bme280_readings["humidity"],
+            "pressure": bme280_readings["pressure"],
+            "luminance": lux,
+            "wind_speed": avg_speed,
+            "gust_speed": gust,
+            "wind_direction": wind_dir,
+            "rain": rainfall,
         }
 
         return readings_dict
