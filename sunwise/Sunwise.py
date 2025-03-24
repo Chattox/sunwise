@@ -49,7 +49,7 @@ class Sunwise():
         cache_payload = {
             "station_name": config.STATION_NAME,
             "timestamp": now_str,
-            "readings": readings
+            "data": readings
         }
         uploads_filename = f"uploads/{datetime_string(filename=True)}.json"
 
