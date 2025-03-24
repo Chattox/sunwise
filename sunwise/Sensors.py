@@ -171,10 +171,9 @@ class Sensors():
         if c != 0.0:
             arc = math.degrees(math.atan(s / c))
         else:
-            dir_dump_filename = f"debug_wind_dir-{datetime_string(filename=True)}.txt"
-            self.__logger.log("debug", "wind_dir cos_sum == 0.0, dumping wind_dir data to file and setting arc to 0.0")
-            with open(dir_dump_filename, "w") as debugfile:
-                debugfile.write("\n".join(str(i) for i in data))
+            # due to the imprecision of python's maths, *extremely* low values tend to end up just
+            # being set to 0.0. If this happens, in order to avoid division by zero errors, just
+            # set arc to 0.0 instead
             arc = 0.0
         average = 0.0
 
